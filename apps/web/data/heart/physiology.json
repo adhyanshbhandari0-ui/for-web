@@ -1,0 +1,88 @@
+{
+  "version": 1,
+  "cycle": {
+    "referenceHr": 75,
+    "beatSeconds": 0.8,
+    "systoleSeconds": 0.3,
+    "diastoleSeconds": 0.5,
+    "phases": [
+      {
+        "id": "atrial-systole",
+        "label": "Atrial contraction",
+        "start": 0,
+        "end": 0.12,
+        "detail": "Both atria squeeze a final top-up of blood through the open inlet valves. Ventricular volume reaches its maximum."
+      },
+      {
+        "id": "isovolumetric-contraction",
+        "label": "Isovolumetric contraction",
+        "start": 0.12,
+        "end": 0.17,
+        "detail": "Ventricular pressure shoots up with all four valves shut, so volume does not change. S1 is the inlet valves snapping closed."
+      },
+      {
+        "id": "ejection",
+        "label": "Ejection",
+        "start": 0.17,
+        "end": 0.42,
+        "detail": "Outlet valves open and blood leaves fast, then slows. Arteries stretch with the pulse wave; the ventricles twist and shorten."
+      },
+      {
+        "id": "isovolumetric-relaxation",
+        "label": "Isovolumetric relaxation",
+        "start": 0.42,
+        "end": 0.47,
+        "detail": "Outlet valves close (S2) while the muscle relaxes with every valve shut. Pressure falls sharply at constant volume."
+      },
+      {
+        "id": "filling",
+        "label": "Filling",
+        "start": 0.47,
+        "end": 1,
+        "detail": "Inlet valves open and the ventricles refill, first quickly then slowly. Coronary flow is highest here."
+      }
+    ],
+    "sounds": [
+      { "id": "S1", "at": 0.13, "label": "Mitral and tricuspid close" },
+      { "id": "S2", "at": 0.43, "label": "Aortic and pulmonary valves close" }
+    ],
+    "ecg": [
+      { "wave": "P", "at": 0.06, "label": "Atrial depolarisation" },
+      { "wave": "QRS", "at": 0.15, "label": "Ventricular depolarisation" },
+      { "wave": "T", "at": 0.36, "label": "Ventricular repolarisation" }
+    ]
+  },
+  "volumes": {
+    "endDiastolicMl": 120,
+    "endSystolicMl": 50,
+    "strokeVolumeMl": 70,
+    "ejectionFractionPct": 58
+  },
+  "pressures": {
+    "lvSystolic": 120,
+    "lvDiastolic": 8,
+    "aorticSystolic": 120,
+    "aorticDiastolic": 80,
+    "rvSystolic": 25,
+    "rvDiastolic": 5,
+    "pulmonarySystolic": 25,
+    "pulmonaryDiastolic": 10,
+    "laMean": 9,
+    "raMean": 4
+  },
+  "numbers": [
+    { "label": "Resting heart rate", "value": "60–100 bpm", "note": "Athletes are often lower at rest." },
+    { "label": "Stroke volume", "value": "~70 mL", "note": "Blood ejected by one ventricle per beat." },
+    { "label": "Cardiac output", "value": "~5 L/min", "note": "Heart rate multiplied by stroke volume." },
+    { "label": "Blood pressure", "value": "~120/80 mmHg", "note": "Systolic over diastolic in the brachial artery." },
+    { "label": "Ejection fraction", "value": "55–70%", "note": "Share of end-diastolic volume that is ejected." },
+    { "label": "Cycle length", "value": "~0.8 s", "note": "At 75 bpm, with systole shorter than diastole." },
+    { "label": "AV node delay", "value": "~0.1 s", "note": "Lets the atria finish before the ventricles start." },
+    { "label": "Coronary flow", "value": "~5% of cardiac output", "note": "Most left ventricular flow happens in diastole." }
+  ],
+  "presets": [
+    { "id": "rest", "label": "Rest", "hr": 68, "note": "Ordinary sitting quietly." },
+    { "id": "exercise", "label": "Exercise", "hr": 140, "note": "Sympathetic drive: faster, stronger, shorter diastole." },
+    { "id": "sleep", "label": "Sleep", "hr": 52, "note": "Vagal dominance with a long filling time." }
+  ]
+}

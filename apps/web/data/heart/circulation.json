@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "oxygenation": { "rich": "#e2493b", "poor": "#4a5fa8" },
+  "bloodPath": [
+    { "id": "body", "label": "Body tissues", "mesh": "capillaries", "oxygen": "poor", "note": "Organs hand over carbon dioxide and pick up oxygen." },
+    { "id": "vena-cavae", "label": "Venae cavae", "mesh": "inferior-vena-cava", "oxygen": "poor", "note": "Two large veins return the oxygen-poor blood to the heart." },
+    { "id": "right-atrium", "label": "Right atrium", "mesh": "right-atrium", "oxygen": "poor", "note": "Collecting chamber behind the tricuspid valve." },
+    { "id": "right-ventricle", "label": "Right ventricle", "mesh": "right-ventricle", "oxygen": "poor", "note": "Pumps at low pressure into the lungs." },
+    { "id": "lungs", "label": "Lungs", "mesh": "pulmonary-arteries", "oxygen": "poor", "note": "Capillaries around the alveoli swap gas in under a second." },
+    { "id": "left-atrium", "label": "Left atrium", "mesh": "left-atrium", "oxygen": "rich", "note": "Receives four pulmonary veins of bright red blood." },
+    { "id": "left-ventricle", "label": "Left ventricle", "mesh": "left-ventricle", "oxygen": "rich", "note": "The strong pump feeding the whole body." },
+    { "id": "aorta", "label": "Aorta and arteries", "mesh": "aortic-arch", "oxygen": "rich", "note": "Distributes blood, with the coronaries branching off first." },
+    { "id": "capillaries", "label": "Arterioles and capillaries", "mesh": "capillaries", "oxygen": "rich", "note": "Exchange happens in vessels one cell thick." },
+    { "id": "veins", "label": "Venules and veins", "mesh": "vein-valves", "oxygen": "poor", "note": "Low pressure return, helped by valves and muscle pumps." }
+  ],
+  "oralRoute": [
+    { "id": "gut", "label": "Gut absorption", "mesh": "capillaries", "note": "The substance crosses the intestinal wall into the portal circulation." },
+    { "id": "portal-vein", "label": "Portal vein", "mesh": "inferior-vena-cava", "note": "Everything absorbed from the gut is routed to the liver first." },
+    { "id": "liver", "label": "Liver first pass", "mesh": "capillaries", "note": "The liver metabolises part of the dose before it reaches the rest of the body." },
+    { "id": "hepatic-veins", "label": "Hepatic veins", "mesh": "inferior-vena-cava", "note": "What survives first pass leaves through the hepatic veins." },
+    { "id": "ivc", "label": "Inferior vena cava", "mesh": "inferior-vena-cava", "note": "Carried upward into the right atrium." },
+    { "id": "right-heart", "label": "Right atrium and ventricle", "mesh": "right-ventricle", "note": "First pass through the heart, still oxygen-poor." },
+    { "id": "lungs", "label": "Lungs", "mesh": "pulmonary-arteries", "note": "The whole cardiac output passes the lungs, so the substance does too." },
+    { "id": "left-heart", "label": "Left atrium and ventricle", "mesh": "left-ventricle", "note": "Now oxygen-rich and heading for the body." },
+    { "id": "aorta", "label": "Aorta", "mesh": "aortic-arch", "note": "The coronary arteries branch off here, so the heart muscle sees the substance almost immediately." },
+    { "id": "coronaries", "label": "Coronary arteries", "mesh": "lad-artery", "note": "First branches off the aortic root: the heart feeds itself before the body." },
+    { "id": "body", "label": "Systemic circulation", "mesh": "capillaries", "note": "Distributed to tissues, then metabolised and cleared." }
+  ],
+  "notes": [
+    "This is a schematic of absorption and distribution, not a pharmacokinetic model.",
+    "Real timing depends on the substance, formulation, food and individual physiology."
+  ]
+}

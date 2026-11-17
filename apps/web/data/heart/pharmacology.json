@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "disclaimer": "Educational illustration only. No dosing information, no advice, no substitute for a clinician.",
+  "drugs": [
+    {
+      "id": "caffeine",
+      "name": "Caffeine",
+      "class": "Stimulant",
+      "summary": "Blocks adenosine receptors, so the heart's natural braking signal is weakened.",
+      "effects": [
+        { "organ": "heart rate", "direction": "up", "note": "Resting rate often rises slightly." },
+        { "organ": "contractility", "direction": "slight-up", "note": "More forceful contraction in some people." },
+        { "organ": "vessels", "direction": "mixed", "note": "Peripheral vessels can narrow while other beds dilate." }
+      ]
+    },
+    {
+      "id": "beta-blocker",
+      "name": "Beta-blocker",
+      "class": "Rate control",
+      "summary": "Blocks beta-1 receptors on the heart so sympathetic signals have less effect.",
+      "effects": [
+        { "organ": "heart rate", "direction": "down", "note": "Resting and exercise rates fall." },
+        { "organ": "contractility", "direction": "down", "note": "Weaker contraction, lower oxygen demand." },
+        { "organ": "blood pressure", "direction": "down", "note": "Output falls, so pressure usually falls too." }
+      ]
+    },
+    {
+      "id": "nitrate",
+      "name": "Nitrate",
+      "class": "Vasodilator",
+      "summary": "Releases nitric oxide, relaxing vascular smooth muscle, especially in veins.",
+      "effects": [
+        { "organ": "vessels", "direction": "wide", "note": "Veins dilate first, reducing preload." },
+        { "organ": "blood pressure", "direction": "down", "note": "Lower filling pressure means less work for the heart." },
+        { "organ": "heart rate", "direction": "reflex-up", "note": "A reflex response can raise the rate." }
+      ]
+    },
+    {
+      "id": "atropine",
+      "name": "Atropine",
+      "class": "Anticholinergic",
+      "summary": "Blocks vagal input to the SA and AV nodes.",
+      "effects": [
+        { "organ": "heart rate", "direction": "up", "note": "Removes the parasympathetic brake." },
+        { "organ": "AV conduction", "direction": "faster", "note": "Shortens the AV node delay." }
+      ]
+    }
+  ]
+}

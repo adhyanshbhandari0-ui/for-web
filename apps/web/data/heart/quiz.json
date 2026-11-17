@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "questions": [
+    {
+      "id": "coronary-first",
+      "question": "Which vessels branch off the aorta first?",
+      "options": ["Coronary arteries", "Renal arteries", "Carotid arteries", "Subclavian arteries"],
+      "answer": 0,
+      "explain": "The coronary arteries leave the aortic root just above the valve cusps, so the heart muscle is supplied before any other organ."
+    },
+    {
+      "id": "thickest-wall",
+      "question": "Which chamber has the thickest wall?",
+      "options": ["Right atrium", "Right ventricle", "Left atrium", "Left ventricle"],
+      "answer": 3,
+      "explain": "The left ventricle pumps against systemic pressure, so its wall is roughly 8–12 mm thick, about three times the right ventricle's."
+    },
+    {
+      "id": "valve-leaflets",
+      "question": "How many leaflets does the mitral valve have?",
+      "options": ["Two", "Three", "Four", "One"],
+      "answer": 0,
+      "explain": "The mitral valve has an anterior and a posterior leaflet, held shut by chordae tendineae and papillary muscles."
+    },
+    {
+      "id": "s1-sound",
+      "question": "What makes the first heart sound (S1)?",
+      "options": ["Aortic and pulmonary valves opening", "Mitral and tricuspid valves closing", "Atrial contraction", "Blood hitting the aortic arch"],
+      "answer": 1,
+      "explain": "S1 is the closure of the inlet valves at the start of ventricular contraction."
+    },
+    {
+      "id": "pacemaker",
+      "question": "Where is the heart's natural pacemaker?",
+      "options": ["AV node", "Purkinje fibres", "Sinoatrial node", "Bundle of His"],
+      "answer": 2,
+      "explain": "The sinoatrial node sits high in the right atrium and fires at 60–100 bpm at rest."
+    },
+    {
+      "id": "av-delay",
+      "question": "Why does the AV node delay the signal?",
+      "options": ["To slow the heart rate", "To let the atria finish emptying", "To protect the Purkinje fibres", "To close the aortic valve"],
+      "answer": 1,
+      "explain": "The roughly 0.1 s delay lets atrial contraction finish before the ventricles start, so filling is complete."
+    },
+    {
+      "id": "coronary-diastole",
+      "question": "When does most left ventricular coronary flow happen?",
+      "options": ["During ejection", "During isovolumetric contraction", "During diastole", "Equally through the cycle"],
+      "answer": 2,
+      "explain": "During systole the contracting muscle squeezes its own vessels shut, so most left ventricular perfusion happens in diastole."
+    },
+    {
+      "id": "frank-starling",
+      "question": "What does the Frank-Starling law describe?",
+      "options": ["Faster rate means more output", "More filling stretch means a stronger contraction", "Higher pressure means slower flow", "Valves open passively"],
+      "answer": 1,
+      "explain": "Within limits, greater filling stretches the muscle and increases the force of the next contraction."
+    },
+    {
+      "id": "ejection-fraction",
+      "question": "Ejection fraction is the share of which volume that is ejected?",
+      "options": ["End-systolic volume", "Stroke volume", "End-diastolic volume", "Total blood volume"],
+      "answer": 2,
+      "explain": "Ejection fraction is stroke volume divided by end-diastolic volume, normally about 55–70%."
+    },
+    {
+      "id": "first-pass",
+      "question": "Why does an oral substance reach the heart after the liver?",
+      "options": ["The liver lies in the chest", "Portal blood drains to the liver before the vena cava", "The heart pumps it to the liver first", "Absorption happens in the liver"],
+      "answer": 1,
+      "explain": "Blood from the gut drains through the portal vein into the liver, then leaves by the hepatic veins to the inferior vena cava."
+    },
+    {
+      "id": "capillary-size",
+      "question": "How wide are capillaries compared with a red blood cell?",
+      "options": ["About ten times wider", "Roughly the same or narrower", "About a hundred times wider", "Much narrower than plasma proteins"],
+      "answer": 1,
+      "explain": "Capillaries are 5–10 µm and red cells 7–8 µm, so cells deform to pass through single file."
+    },
+    {
+      "id": "beta-blocker",
+      "question": "A beta-blocker mainly does what to the heart?",
+      "options": ["Raises rate and force", "Lowers rate and force", "Only widens veins", "Only speeds AV conduction"],
+      "answer": 1,
+      "explain": "Blocking beta-1 receptors reduces both heart rate and contractility, lowering oxygen demand."
+    }
+  ]
+}

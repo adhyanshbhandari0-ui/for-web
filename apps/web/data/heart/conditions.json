@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "conditions": [
+    {
+      "id": "normal",
+      "name": "Normal",
+      "summary": "Sinus rhythm at the selected rate with coordinated contraction.",
+      "visual": "Even chamber motion, valves fully closing, coronary flow unobstructed.",
+      "effects": [{ "label": "Rhythm", "value": "Regular" }, { "label": "Ejection fraction", "value": "55–70%" }]
+    },
+    {
+      "id": "plaque",
+      "name": "Coronary plaque",
+      "summary": "Fatty and fibrous material narrows a coronary artery, reducing flow downstream.",
+      "visual": "A pale narrowing in the proximal LAD with reduced flow beyond it.",
+      "effects": [{ "label": "Flow", "value": "Reduced downstream" }, { "label": "Supply", "value": "LAD territory" }]
+    },
+    {
+      "id": "ischaemia",
+      "name": "Heart attack (ischaemia)",
+      "summary": "A blocked coronary starves part of the muscle; that region stops contracting.",
+      "visual": "A dusky, motionless patch in the LAD territory while the rest contracts.",
+      "effects": [{ "label": "Contractility", "value": "Focal loss" }, { "label": "Ejection fraction", "value": "Reduced" }]
+    },
+    {
+      "id": "afib",
+      "name": "Atrial fibrillation",
+      "summary": "The atria quiver instead of contracting, and the ventricles are triggered irregularly.",
+      "visual": "No organised atrial squeeze, irregular ventricular beats, no P wave.",
+      "effects": [{ "label": "Rhythm", "value": "Irregular" }, { "label": "Atrial kick", "value": "Lost" }]
+    },
+    {
+      "id": "tachycardia",
+      "name": "Tachycardia",
+      "summary": "A fast rhythm shortens filling time, so each beat moves less blood.",
+      "visual": "Rapid beats with visibly reduced filling before each contraction.",
+      "effects": [{ "label": "Heart rate", "value": "Above 100 bpm" }, { "label": "Filling time", "value": "Short" }]
+    },
+    {
+      "id": "bradycardia",
+      "name": "Bradycardia",
+      "summary": "A slow rhythm gives long filling times and a low output if it falls far enough.",
+      "visual": "Slow, long diastoles with a large ventricular volume before each beat.",
+      "effects": [{ "label": "Heart rate", "value": "Below 60 bpm" }, { "label": "Output", "value": "May fall" }]
+    },
+    {
+      "id": "heart-block",
+      "name": "Heart block",
+      "summary": "The signal is delayed or dropped between atria and ventricles.",
+      "visual": "P waves continue but ventricular beats arrive late or are missed.",
+      "effects": [{ "label": "AV delay", "value": "Prolonged" }, { "label": "Rhythm", "value": "Dissociated" }]
+    },
+    {
+      "id": "stenosis",
+      "name": "Valve stenosis",
+      "summary": "A stiffened valve does not open fully, so the chamber behind it must push harder.",
+      "visual": "A restricted opening with a visible pressure gradient and thicker upstream wall.",
+      "effects": [{ "label": "Outflow", "value": "Obstructed" }, { "label": "Upstream wall", "value": "Thickens" }]
+    },
+    {
+      "id": "regurgitation",
+      "name": "Valve leak",
+      "summary": "A valve that does not seal lets blood flow backwards during contraction.",
+      "visual": "A jet of reverse flow through a closed valve.",
+      "effects": [{ "label": "Forward flow", "value": "Reduced" }, { "label": "Volume load", "value": "Increased" }]
+    },
+    {
+      "id": "heart-failure",
+      "name": "Heart failure",
+      "summary": "A weak, often dilated ventricle cannot eject enough per beat.",
+      "visual": "A large floppy ventricle with a small fractional shortening.",
+      "effects": [{ "label": "Ejection fraction", "value": "Below 40%" }, { "label": "Chamber size", "value": "Dilated" }]
+    },
+    {
+      "id": "hypertrophy",
+      "name": "Left ventricular hypertrophy",
+      "summary": "Chronic high afterload thickens the left ventricular wall, stiffening it.",
+      "visual": "A visibly thicker left wall with a smaller cavity.",
+      "effects": [{ "label": "Wall thickness", "value": "Above 12 mm" }, { "label": "Compliance", "value": "Reduced" }]
+    },
+    {
+      "id": "septal-defect",
+      "name": "Septal defect",
+      "summary": "A hole between the chambers lets blood cross from the higher-pressure side to the lower.",
+      "visual": "A jet crossing the septum, with extra flow through the lungs.",
+      "effects": [{ "label": "Shunt", "value": "Left to right" }, { "label": "Pulmonary flow", "value": "Increased" }]
+    }
+  ]
+}
