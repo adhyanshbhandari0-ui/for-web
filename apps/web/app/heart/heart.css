@@ -1,0 +1,55 @@
+/*
+ * Page-scoped additions for the heart simulator. Everything else comes from
+ * the shared theatre tokens, so this file stays deliberately small: only the
+ * range input needs a look the utility classes cannot express, and the
+ * reduced-motion rule covers the panels whose width animates.
+ */
+
+.heart-range {
+  appearance: none;
+  height: 14px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.heart-range::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.heart-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 11px;
+  height: 11px;
+  margin-top: -4px;
+  border-radius: 999px;
+  background: var(--accent-fill);
+  box-shadow: 0 0 0 3px rgba(101, 213, 236, 0.14);
+}
+
+.heart-range::-moz-range-track {
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.heart-range::-moz-range-thumb {
+  width: 11px;
+  height: 11px;
+  border: none;
+  border-radius: 999px;
+  background: var(--accent-fill);
+  box-shadow: 0 0 0 3px rgba(101, 213, 236, 0.14);
+}
+
+.heart-range:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 4px rgba(101, 213, 236, 0.35);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heart-range,
+  .heart-range::-webkit-slider-thumb {
+    transition: none;
+  }
+}

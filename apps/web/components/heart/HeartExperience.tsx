@@ -321,6 +321,9 @@ export default function HeartExperience() {
   const [zoom, setZoom] = useState(1);
   const [tier, setTier] = useState<Tier>(0);
   const [paused, setPaused] = useState(false);
+  // The intersection observer is created once, so it reads the latest pause
+  // flag through a ref instead of capturing the first render's value.
+  const pausedRef = useRef(paused);
   const [speed, setSpeed] = useState(1);
   const [muted, setMuted] = useState(true);
   const [labelsVisible, setLabelsVisible] = useState(true);
@@ -396,7 +399,7 @@ export default function HeartExperience() {
     resize.observe(stage);
 
     const visible = new IntersectionObserver(
-      ([entry]) => engineRef.current?.setPaused(!entry.isIntersecting || paused),
+      ([entry]) => engineRef.current?.setPaused(!entry.isIntersecting || pausedRef.current),
       { threshold: 0.05 },
     );
     visible.observe(stage);
@@ -432,6 +435,7 @@ export default function HeartExperience() {
 
   // Push UI state into the engine.
   useEffect(() => {
+    pausedRef.current = paused;
     engineRef.current?.setPaused(paused);
   }, [paused]);
 

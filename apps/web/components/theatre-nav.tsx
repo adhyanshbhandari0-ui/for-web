@@ -16,6 +16,7 @@ export default function TheatreNav({ onSetup }: { onSetup?: () => void }) {
         </Link>
         <nav aria-label="Main navigation">
           <Link href="/simulator" aria-current={pathname === "/simulator" ? "page" : undefined}>Simulator</Link>
+          <Link href="/heart" aria-current={pathname === "/heart" ? "page" : undefined}>Heart</Link>
           <Link href="/simulator#studies">Studies</Link>
           <Link href="/how-it-works" aria-current={pathname === "/how-it-works" ? "page" : undefined}>How it works</Link>
           <Link href="/about" aria-current={pathname === "/about" ? "page" : undefined}>About</Link>
