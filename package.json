@@ -1,0 +1,49 @@
+{
+  "name": "drug-in-body-simulator",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint:copy": "node scripts/lint-copy.mjs",
+    "typecheck": "tsc --noEmit",
+    "dev:summary": "tsx api/summary/server.ts",
+    "check:supabase": "tsx scripts/check-supabase.ts",
+    "check:drugs": "tsx scripts/check-drug-catalog.ts",
+    "check:rls": "tsx scripts/check-rls-two-users.ts",
+    "data:import": "tsx scripts/data/import-catalog.ts",
+    "data:import:dry": "tsx scripts/data/import-catalog.ts --dry",
+    "data:pk": "tsx scripts/data/import-pk.ts",
+    "data:pk:dry": "tsx scripts/data/import-pk.ts --dry",
+    "dev:web": "npm -w @dib/web run dev",
+    "build:web": "npm -w @dib/web run build",
+    "start:web": "npm -w @dib/web run start",
+    "data:labels": "tsx scripts/data/fetch-labels.ts",
+    "data:pk:candidates": "tsx scripts/data/extract-pk.ts",
+    "data:interactions:candidates": "tsx scripts/data/extract-interactions.ts",
+    "data:compare": "tsx scripts/data/compare-coverage.ts",
+    "data:pk:verify": "tsx scripts/data/withdraw-unverified-pk.ts",
+    "data:refresh": "tsx scripts/data/refresh-pk.ts",
+    "validate:pk": "tsx scripts/validate-pk.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.23.15",
+    "typescript": "^5.4.0",
+    "vitest": "^1.0.0",
+    "zod": "^3.23.0"
+  },
+  "vitest": {
+    "include": [
+      "packages/**/tests/**/*.test.ts",
+      "api/**/tests/**/*.test.ts",
+      "supabase/tests/**/*.test.ts",
+      "scripts/tests/**/*.test.ts",
+      "apps/web/tests/**/*.test.ts"
+    ]
+  }
+}

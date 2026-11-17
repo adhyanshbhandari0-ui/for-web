@@ -1,0 +1,269 @@
+"""Export the anatomy Blender model to a web GLB.
+
+Reads `assets/anatomy/human_anatomy.blend` (the committed source), decimates
+the meshes to the web budget, converts the vessel/airway curves to low-poly
+tubes, drops the render-scene extras (platform, ring, lights, camera) and
+writes `apps/web/public/models/human_anatomy.glb`.
+Pass `-- --simulator` to export the higher-detail close-up model, including
+the BodyParts3D 4.0 digestive meshes from fetch-meshes.sh.
+
+Never saves back over the .blend: the source is opened read-only and the
+decimated scene lives only in memory. Run it with Blender's headless Python:
+
+    /Applications/Blender.app/Contents/MacOS/Blender --background \
+        assets/anatomy/human_anatomy.blend --python scripts/anatomy/export-web.py
+
+The budget: ~120k triangles, ~2.4 MB. Raise the targets only with a measured
+reason (frame time on throttled CPU, first-load bytes), and keep the total
+under ~150k tris — the landing scene shares the budget with its particles,
+sparkline and the dial.
+
+The brain is the one part that is not decimated hard: the cortex is 38 gyri
+and the deep brain 27 nuclei, and the folds between them are the whole point
+of the model. It is decimated to a level that keeps the sulci readable at the
+size the figure renders at, and no further.
+"""
+import bpy
+import os
+import sys
+
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+BLEND = os.path.join(REPO, "assets", "anatomy", "human_anatomy.blend")
+GLB = os.path.join(REPO, "apps", "web", "public", "models", "human_anatomy.glb")
+
+# Decimate targets (base-triangle budget; collapse+triangulate means the
+# reported polygon count is the triangle count).
+#
+# The skin carries the figure: it is a glass shell and its triangle edges are
+# what draw the body's network of veins. Collapsing it hard shatters it into
+# shards, so it gets the largest share of the budget and is smoothed
+# afterwards to close the gaps the collapse leaves.
+TARGETS = {
+    "Body": 40000,
+    "Cerebellum": 6000,
+    "BrainStem": 4000,
+    "Liver": 4000,
+    "Lung_L": 5000,
+    "Lung_R": 5000,
+    "Heart": 6000,
+    "Kidney_L": 1500,
+    "Kidney_R": 1500,
+    "Trachea": 2000,
+    "Bronchus_L": 2000,
+    "Bronchus_R": 2000,
+}
+
+SIMULATOR_TARGETS = {
+    **TARGETS,
+    "Body": 62000,
+    "Cerebellum": 12000,
+    "BrainStem": 8000,
+    "Heart": 18000,
+    "Liver": 16000,
+    "Lung_L": 15000,
+    "Lung_R": 15000,
+    "Kidney_L": 9000,
+    "Kidney_R": 9000,
+    "Stomach": 12500,
+    "SmallIntestine": 24000,
+}
+
+# The skin is collapsed and then smoothed: the collapse leaves slivers and
+# holes along the creases, and the smoothing closes them so the shell reads as
+# glass rather than as broken plates.
+SKIN_SMOOTH_ITERATIONS = 6
+SKIN_SMOOTH_FACTOR = 0.5
+
+# The brain is 62 named gyri and nuclei. They are decimated individually so a
+# small gyrus is not flattened into its large neighbours, and the total is
+# kept near the rest of the figure so the model still loads in one go.
+BRAIN_PART_TARGET = 400
+
+# Every mesh that is neither an organ nor the shell: the great vessels, the
+# heart's coronaries and the great cardiac veins. They are small and numerous,
+# so they share one budget rather than getting one each.
+VESSEL_TARGET = 600
+
+REMOVE = ("Platform", "Ring")
+
+CURVE_RESOLUTION_U = 6
+CURVE_BEVEL_RESOLUTION = 3
+
+
+def triangles(obj):
+    obj.data.calc_loop_triangles()
+    return len(obj.data.loop_triangles)
+
+
+def decimate(obj, target):
+    current = len(obj.data.polygons)
+    if current <= target:
+        return current, current
+    mod = obj.modifiers.new("DecimateWeb", "DECIMATE")
+    mod.decimate_type = "COLLAPSE"
+    mod.ratio = target / current
+    mod.use_collapse_triangulate = True
+    dg = bpy.context.evaluated_depsgraph_get()
+    me = bpy.data.meshes.new_from_object(obj.evaluated_get(dg))
+    old = obj.data
+    mats = list(old.materials)
+    obj.modifiers.clear()
+    obj.data = me
+    bpy.data.meshes.remove(old)
+    me.materials.clear()
+    for m in mats:
+        me.materials.append(m)
+    return current, triangles(obj)
+
+
+def smooth(ob, factor, iterations):
+    """Laplacian smoothing, applied after a collapse.
+
+    Collapsing a shell leaves slivers and holes along its creases; smoothing
+    closes them. The skin needs this: without it the glass shell breaks into
+    shards that read as broken plates rather than as a body.
+    """
+    mod = ob.modifiers.new("SmoothWeb", "SMOOTH")
+    mod.factor = factor
+    mod.iterations = iterations
+    dg = bpy.context.evaluated_depsgraph_get()
+    me = bpy.data.meshes.new_from_object(ob.evaluated_get(dg))
+    old = ob.data
+    mats = list(old.materials)
+    ob.modifiers.clear()
+    ob.data = me
+    bpy.data.meshes.remove(old)
+    me.materials.clear()
+    for m in mats:
+        me.materials.append(m)
+    try:
+        ob.data.shade_smooth()
+    except Exception:
+        pass
+
+
+def main():
+    args = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
+    simulator = "--simulator" in args
+    output = GLB.replace(".glb", "_simulator.glb") if simulator else GLB
+    targets = SIMULATOR_TARGETS if simulator else TARGETS
+    print("SOURCE", BLEND)
+    bpy.ops.wm.open_mainfile(filepath=BLEND)
+
+    if simulator:
+        sys.path.insert(0, os.path.dirname(BLEND))
+        from anatomy import load_obj, smooth as shade_smooth
+        digestive = bpy.data.materials.new("Digestive anatomy")
+        digestive.diffuse_color = (0.58, 0.24, 0.18, 1)
+        def import_part(file_id, name):
+            obj = load_obj(file_id, name, digestive, z_up=True)
+            if obj is None:
+                raise FileNotFoundError(f"{file_id}.obj is required. Run scripts/anatomy/fetch-meshes.sh.")
+            return obj
+
+        import_part("FJ2564", "Stomach")
+        # The BodyParts3D PART-OF table maps FMA7200 to these 56 elements.
+        intestine = [import_part(f"FJ{i}", f"Intestine_{i}") for i in range(2573, 2629)]
+        bpy.ops.object.select_all(action="DESELECT")
+        for part in intestine:
+            part.select_set(True)
+        bpy.context.view_layer.objects.active = intestine[0]
+        bpy.ops.object.join()
+        intestine[0].name = "SmallIntestine"
+        shade_smooth(intestine[0])
+
+    before = 0
+    for ob in bpy.data.objects:
+        if ob.type == "MESH":
+            before += triangles(ob)
+    print("total_triangles_before", before)
+
+    for name, target in targets.items():
+        ob = bpy.data.objects.get(name)
+        if ob is None:
+            print("MISSING_OBJECT", name)
+            continue
+        old, new = decimate(ob, target)
+        if name == "Body":
+            smooth(ob, SKIN_SMOOTH_FACTOR, SKIN_SMOOTH_ITERATIONS)
+            new = triangles(ob)
+        print("decimated %-12s %9d -> %9d" % (name, old, new))
+
+    # Every other mesh is a vessel or a vessel fragment: the heart's coronaries
+    # and cardiac veins, the great vessels and their branches.
+    brain_parts = [ob for ob in bpy.data.objects
+                   if ob.type == "MESH" and ob.name.startswith(("Cortex_", "Deep_"))]
+    named = set(targets) | set(REMOVE)
+    if simulator:
+        named.update(ob.name for ob in brain_parts)
+    for ob in list(bpy.data.objects):
+        if ob.type != "MESH" or ob.name in named:
+            continue
+        old, new = decimate(ob, VESSEL_TARGET)
+        print("decimated %-22s %7d -> %7d (vessel)" % (ob.name, old, new))
+
+    # The brain's named parts are decimated last and to a smaller budget each:
+    # a gyrus is small, and decimating it to a share of the whole brain would
+    # flatten the sulci that make it read as cortex.
+    for ob in brain_parts:
+        decimate(ob, 1400 if simulator else BRAIN_PART_TARGET)
+    brain_total = sum(triangles(ob) for ob in brain_parts)
+    print("brain parts %d meshes, %d triangles" % (len(brain_parts), brain_total))
+    for ob in list(bpy.data.objects):
+        if ob.type != "CURVE":
+            continue
+        ob.data.resolution_u = CURVE_RESOLUTION_U
+        ob.data.bevel_resolution = CURVE_BEVEL_RESOLUTION
+        bpy.ops.object.select_all(action="DESELECT")
+        ob.select_set(True)
+        bpy.context.view_layer.objects.active = ob
+        bpy.ops.object.convert(target="MESH")
+        print("converted %-16s %9d tris" % (ob.name, triangles(ob)))
+
+    for name in REMOVE:
+        ob = bpy.data.objects.get(name)
+        if ob is not None:
+            bpy.data.objects.remove(ob, do_unlink=True)
+            print("removed", name)
+
+    if simulator:
+        # Smooth the close-up silhouettes offline, so playback does no mesh work.
+        rounded = {"Body", "Liver", "Heart", "Lung_L", "Lung_R",
+                   "Kidney_L", "Kidney_R", "Stomach", "SmallIntestine"}
+        for ob in bpy.data.objects:
+            if ob.type != "MESH":
+                continue
+            if ob.name in rounded:
+                mod = ob.modifiers.new("CloseupSurface", "SUBSURF")
+                mod.levels = 1
+                mod.render_levels = 1
+                bpy.context.view_layer.objects.active = ob
+                bpy.ops.object.modifier_apply(modifier=mod.name)
+            ob.data.shade_smooth()
+
+    after = 0
+    for ob in bpy.data.objects:
+        if ob.type == "MESH":
+            after += triangles(ob)
+    print("total_triangles_after", after)
+
+    bpy.ops.object.select_all(action="SELECT")
+    bpy.ops.export_scene.gltf(
+        filepath=output,
+        export_format="GLB",
+        use_selection=True,
+        export_yup=True,
+        export_normals=True,
+        export_tangents=False,
+        export_texcoords=False,
+        export_materials="EXPORT",
+        export_cameras=False,
+        export_lights=False,
+        export_extras=True,
+    )
+    print("bytes", os.path.getsize(output))
+    print("wrote", output)
+
+
+if __name__ == "__main__":
+    main()

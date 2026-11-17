@@ -1,0 +1,205 @@
+/**
+ * createDataClient — framework-free wrapper around a supabase-js v2 client.
+ *
+ * The caller supplies SUPABASE_URL and SUPABASE_ANON_KEY explicitly;
+ * this package never reads process.env. It accepts publishable keys and
+ * legacy anon keys.
+ */
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { z } from 'zod';
+
+import type { DataBackend } from './backend';
+import type { ListReportsArgs, ProfilePayload, ReportInput, SavedReport } from './types';
+import { makeError, wrap } from './errors';
+import {
+  getSession,
+  onAuthChange,
+  signInWithEmailOtp,
+  signInWithGoogle,
+  signOut as authSignOut,
+} from './auth';
+import { getProfile, saveProfile } from './profile';
+import { getDrugCitations, getDrugPk, searchDrugs, type DrugCatalogHit, type DrugParameterCitation, type DrugPkRow } from './drugs';
+import { isPublicSupabaseKey } from './public-key';
+import {
+  deleteAllMyData,
+  deleteReport,
+  getReport,
+  listReports,
+  saveReport,
+} from './reports';
+
+const ConfigSchema = z
+  .object({
+    supabaseUrl: z
+      .string()
+      .trim()
+      .refine((u) => {
+        try {
+          return new URL(u).protocol === 'https:';
+        } catch {
+          return false;
+        }
+      }, 'must be an https Supabase project URL'),
+    supabaseAnonKey: z.string().trim().min(20, 'anon key looks too short'),
+  })
+  .strict();
+
+export interface DataClient {
+  /**
+   * Auth helpers.
+   * - signInWithGoogle(redirectTo) → OAuth redirect flow
+   * - signInWithEmailOtp(email) → magic-link / OTP flow
+   * - signOut, getSession, onAuthChange(callback)
+   */
+  auth: {
+    signInWithGoogle(redirectTo: string): Promise<{ data: { provider: 'google' } | null; error: { code: string; message: string } | null }>;
+    signInWithEmailOtp(email: string, redirectTo?: string): Promise<{ data: { sent: boolean } | null; error: { code: string; message: string } | null }>;
+    signOut(): Promise<{ data: Record<string, never> | null; error: { code: string; message: string } | null }>;
+    getSession(): Promise<{ data: { session: { userId: string | null; email: string | null } } | null; error: { code: string; message: string } | null }>;
+    onAuthChange(callback: (event: string, session: { userId: string | null; email: string | null } | null) => void): { data: { unsubscribe: () => void } | null; error: { code: string; message: string } | null };
+  };
+
+  /**
+   * Profile helpers (RLS-protected, one row per signed-in user).
+   * - getProfile()
+   * - saveProfile(profile)
+   */
+  profile: {
+    getProfile(): Promise<{ data: ProfilePayload | null; error: { code: string; message: string } | null }>;
+    saveProfile(profile: ProfilePayload): Promise<{ data: ProfilePayload | null; error: { code: string; message: string } | null }>;
+  };
+
+  /**
+   * Report helpers.
+   * - saveReport(report), listReports({limit, before}), getReport(id),
+   *   deleteReport(id), deleteAllMyData()
+   */
+  reports: {
+    saveReport(report: ReportInput): Promise<{ data: SavedReport | null; error: { code: string; message: string } | null }>;
+    listReports(args?: ListReportsArgs): Promise<{ data: SavedReport[] | null; error: { code: string; message: string } | null }>;
+    getReport(id: string): Promise<{ data: SavedReport | null; error: { code: string; message: string } | null }>;
+    deleteReport(id: string): Promise<{ data: { deleted: true } | null; error: { code: string; message: string } | null }>;
+    deleteAllMyData(): Promise<{ data: { reportsDeleted: number; profileDeleted: boolean } | null; error: { code: string; message: string } | null }>;
+  };
+
+  /**
+   * Drug catalogue helpers (public read — no session needed).
+   * - searchDrugs(q, limit): catalogue search via the search_drugs RPC
+   * - getDrugPk(drugId): one drug's approved, cited PK row, or null
+   */
+  drugs: {
+    searchDrugs(q: string, limit?: number): Promise<{ data: DrugCatalogHit[] | null; error: { code: string; message: string } | null }>;
+    getDrugPk(drugId: string): Promise<{ data: DrugPkRow | null; error: { code: string; message: string } | null }>;
+    /** The citation behind each value of an approved drug's parameters. */
+    getDrugCitations(drugId: string): Promise<{ data: DrugParameterCitation[] | null; error: { code: string; message: string } | null }>;
+  };
+}
+
+export function createDataClient(args: {
+  supabaseUrl: string;
+  supabaseAnonKey: string;
+  /** Test injection: a pre-built client (supabase-js or a mock). */
+  backend?: DataBackend;
+}): DataClient {
+  const parsedConfig = ConfigSchema.safeParse({
+    supabaseUrl: args?.supabaseUrl,
+    supabaseAnonKey: args?.supabaseAnonKey,
+  });
+  if (!parsedConfig.success) {
+    const msg = parsedConfig.error.issues
+      .slice(0, 3)
+      .map((i) => `${i.path.join('.') || '(root)'}: ${i.message}`)
+      .join('; ');
+    throw new Error(`createDataClient config error — ${msg}`);
+  }
+
+  if (!isPublicSupabaseKey(parsedConfig.data.supabaseAnonKey)) {
+    throw new Error('createDataClient config error — use a Supabase publishable or legacy anon key');
+  }
+
+  let backend: DataBackend;
+  if (args.backend) {
+    backend = { ...args.backend };
+  } else {
+    let supabase: SupabaseClient | null = null;
+    try {
+      supabase = createClient(parsedConfig.data.supabaseUrl, parsedConfig.data.supabaseAnonKey, {
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+      });
+    } catch {
+      supabase = null;
+    }
+    if (!supabase) {
+      const fail = makeError('client', 'could not create supabase client');
+      return failedClient(fail);
+    }
+    backend = {
+      from: (name: string) => supabase!.from(name),
+      // rpc is a separate arrow closure so it keeps the supabase client
+      // without relying on `this` (backend objects get spread/copied).
+      rpc: (name: string, args?: Record<string, unknown>) => supabase!.rpc(name, args),
+      auth: supabase.auth,
+    };
+  }
+
+  return {
+    auth: {
+      signInWithGoogle: (redirectTo: string) => withData(() => signInWithGoogle(redirectTo, backend)),
+      signInWithEmailOtp: (email, redirectTo) => withData(() => signInWithEmailOtp(email, backend, redirectTo)),
+      signOut: () => withData(() => authSignOut(backend)),
+      getSession: () => withData(() => getSession(backend)),
+      onAuthChange: (cb: any) => onAuthChange(cb, backend),
+    },
+    profile: {
+      getProfile: () => withData(() => getProfile(backend)),
+      saveProfile: (profile: ProfilePayload) => withData(() => saveProfile(profile, backend)),
+    },
+    reports: {
+      saveReport: (report: ReportInput) => withData(() => saveReport(report, backend)),
+      listReports: (args?: ListReportsArgs) => withData(() => listReports(args ?? {}, backend)),
+      getReport: (id: string) => withData(() => getReport(id, backend)),
+      deleteReport: (id: string) => withData(() => deleteReport(id, backend)),
+      deleteAllMyData: () => withData(() => deleteAllMyData(backend)),
+    },
+    drugs: {
+      searchDrugs: (q: string, limit?: number) => withData(() => searchDrugs(q, limit ?? 20, backend)),
+      getDrugPk: (drugId: string) => withData(() => getDrugPk(drugId, backend)),
+      getDrugCitations: (drugId: string) => withData(() => getDrugCitations(drugId, backend)),
+    },
+  };
+}
+
+async function withData<T>(fn: () => Promise<{ data: T; error: any }>): Promise<{ data: T | null; error: { code: string; message: string } | null }> {
+  const res = (await fn().then((r) => r, (e) => wrap(() => Promise.reject(e)))) as { data: T; error: any };
+  return res;
+}
+
+function failedClient(error: { code: string; message: string }): DataClient {
+  const err = { data: null, error };
+  return {
+    auth: {
+      signInWithGoogle: async () => err,
+      signInWithEmailOtp: async () => err,
+      signOut: async () => err,
+      getSession: async () => err,
+      onAuthChange: () => err,
+    },
+    profile: {
+      getProfile: async () => err,
+      saveProfile: async () => err,
+    },
+    reports: {
+      saveReport: async () => err,
+      listReports: async () => err,
+      getReport: async () => err,
+      deleteReport: async () => err,
+      deleteAllMyData: async () => err,
+    },
+    drugs: {
+      searchDrugs: async () => err,
+      getDrugPk: async () => err,
+      getDrugCitations: async () => err,
+    },
+  };
+}
