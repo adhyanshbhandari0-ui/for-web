@@ -100,7 +100,12 @@ export type QuizQuestion = {
   explain: string;
 };
 
-export const anatomy = anatomyJson as { version: number; items: AnatomyItem[] };
+// JSON imports widen the `facts` tuples to `string[][]`, so the cast goes
+// through `unknown` rather than pretending the shapes already overlap.
+export const anatomy = anatomyJson as unknown as {
+  version: number;
+  items: AnatomyItem[];
+};
 export const physiology = physiologyJson as unknown as Physiology;
 export const circulation = circulationJson as {
   version: number;
